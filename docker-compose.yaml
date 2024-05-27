@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  postgres:
+    container_name: 'user_db'
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: dev-user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev_db
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data:cached
+
+  user:
+    container_name: 'user'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn user.main:app --host 0.0.0.0 --port 8001 --reload
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - "postgres"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./user:/app/user
+      - ./alembic:/app/alembic
+
+volumes:
+  db-data:
