@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from user.models.users import User
@@ -17,6 +18,12 @@ class UserRepository:
     async def get(cls, session: AsyncSession, pk: int) -> User | None:
         user = await session.get(User, pk)
         return user
+
+    @classmethod
+    async def get_by_email(cls, session: AsyncSession, email: str) -> User | None:
+        req = select(User).filter(email == User.email)
+        user = await session.execute(req)
+        return user.scalars().one()
 
     async def delete(self):
         pass

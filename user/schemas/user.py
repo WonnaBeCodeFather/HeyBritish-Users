@@ -27,6 +27,7 @@ class UserCreateSchema(UserBase):
     role: RoleEnum
     cost_per_lesson: float | None = None
     rate: float | None = None
+    password: str
 
 
 class UserUpdateSchema(UserBase):
