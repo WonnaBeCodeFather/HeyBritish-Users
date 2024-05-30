@@ -40,6 +40,7 @@ class User(TimestampModel):
     student: Mapped["Student"] = relationship("Student", back_populates="user")
     status: Mapped[Status] = mapped_column(default=Status.ACTIVE)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenant.id", name='tenant_constrain'))
+    password: Mapped[str]
 
 
 class Student(TimestampModel):
