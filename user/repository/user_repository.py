@@ -25,8 +25,18 @@ class UserRepository:
         user = await session.execute(req)
         return user.scalars().one()
 
-    async def delete(self):
-        pass
+    @classmethod
+    async def change_password(cls, session: AsyncSession, password: str, pk: int) -> User:
+        user = await cls.get(session=session, pk=pk)
+        user.password = password
+        await session.flush()
+        return user
 
-    async def update(self):
-        pass
+    @classmethod
+    async def update(cls, session: AsyncSession, data: dict, pk: int) -> User:
+        user: User = await cls.get(session=session, pk=pk)
+        for key, value in data.items():
+            setattr(user, key, value)
+        await session.flush()
+        await session.refresh(user)
+        return user

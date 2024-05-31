@@ -9,7 +9,7 @@ from user.models.users import User
 from user.repository.user_repository import UserRepository
 from user.schemas.student import StudentCreateSchema
 from user.schemas.tutor import TutorCreateSchema
-from user.schemas.user import UserCreateSchema, UserSchema, RoleEnum
+from user.schemas.user import UserCreateSchema, UserSchema, RoleEnum, DBUserSchema, UserUpdateSchema
 from user.services.auth_service import AuthService
 from user.services.student_service import StudentService
 from user.services.tutor_service import TutorService
@@ -19,8 +19,8 @@ load_dotenv()
 
 class UserService:
     @classmethod
-    def hash_password_in_payload(cls, payload: UserCreateSchema):
-        password = payload.password
+    def hash_password_in_payload(cls, payload: UserCreateSchema) -> UserCreateSchema:
+        password: str = payload.password
         payload.password = AuthService.get_hashed_password(password)
         return payload
 
@@ -57,5 +57,15 @@ class UserService:
         return UserSchema.from_orm(user)
 
     @classmethod
-    async def get_list(cls):
-        pass
+    async def change_password(cls, user: DBUserSchema, session: AsyncSession, current_password: str,
+                              new_password) -> UserSchema:
+        AuthService.verify_password(password=current_password, hashed_pass=user.password)
+        hashed_password: str = AuthService.get_hashed_password(password=new_password)
+        user: User = await UserRepository.change_password(session=session, password=hashed_password, pk=user.id)
+        return UserSchema.from_orm(user)
+
+    @classmethod
+    async def update_user(cls, user: DBUserSchema, session: AsyncSession, data: UserUpdateSchema) -> UserSchema:
+        update_data: dict = data.dict(exclude_unset=True)
+        user: User = await UserRepository.update(session=session, pk=user.id, data=update_data)
+        return UserSchema.from_orm(user)

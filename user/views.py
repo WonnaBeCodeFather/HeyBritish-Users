@@ -8,7 +8,7 @@ from user.schemas.auth import TokenSchema
 from user.schemas.student import StudentCreateSchema, StudentSchema, GetStudentTutorSchema
 from user.schemas.tutor import TutorCreateSchema, TutorSchema, GetTutorStudentsSchema
 from user.schemas.tutor_student import TutorStudentCreateSchema, TutorStudentSchema
-from user.schemas.user import UserCreateSchema, UserSchema
+from user.schemas.user import UserCreateSchema, UserSchema, DBUserSchema, ChangePasswordRequestSchema, UserUpdateSchema
 from user.services.auth_service import AuthService
 from user.services.student_service import StudentService
 from user.services.tutor_service import TutorService
@@ -63,9 +63,9 @@ async def login(db_session: session, data: OAuth2PasswordRequestForm = Depends()
     return await AuthService.login(db_session=db_session, email=data.username, password=data.password)
 
 
-@router.get("/users/me/")
+@router.get("/users/me/", response_model=UserSchema)
 async def read_users_me(
-        current_user: Annotated[UserSchema, Depends(AuthService.get_current_user)],
+        current_user: Annotated[DBUserSchema, Depends(AuthService.get_current_user)],
 ):
     return current_user
 
@@ -75,7 +75,16 @@ async def refresh_tokens(refresh_token: str, db_session: session):
     return await AuthService.refresh_tokens(refresh_token=refresh_token, db_session=db_session)
 
 
-@router.post('/change_password', response_model=TokenSchema)
-async def change_password(db_session: session,
-                          current_user: Annotated[UserSchema, Depends(AuthService.get_current_user)]):
-    return await AuthService.refresh_tokens(refresh_token=refresh_token, db_session=db_session)
+@router.post('/change_password', response_model=UserSchema)
+@rollback_on_exception
+async def change_password(db_session: session, data: ChangePasswordRequestSchema,
+                          current_user: Annotated[DBUserSchema, Depends(AuthService.get_current_user)]):
+    return await UserService.change_password(user=current_user, current_password=data.current_password,
+                                             new_password=data.new_password, session=db_session)
+
+
+@router.post('/update', response_model=UserSchema)
+@rollback_on_exception
+async def update_user(db_session: session, data: UserUpdateSchema,
+                      current_user: Annotated[DBUserSchema, Depends(AuthService.get_current_user)]):
+    return await UserService.update_user(user=current_user, session=db_session, data=data)

@@ -16,7 +16,7 @@ from user.db import get_db_session
 from user.models.users import User
 from user.repository.user_repository import UserRepository
 from user.schemas.auth import TokenSchema, TokenPayload
-from user.schemas.user import UserSchema
+from user.schemas.user import DBUserSchema
 
 load_dotenv()
 
@@ -36,11 +36,11 @@ reuseable_oauth = OAuth2PasswordBearer(
 
 class AuthService:
     @classmethod
-    def __get_hashed_password(cls, password: str) -> str:
+    def get_hashed_password(cls, password: str) -> str:
         return password_context.hash(password)
 
     @classmethod
-    def __verify_password(cls, password: str, hashed_pass: str) -> bool:
+    def verify_password(cls, password: str, hashed_pass: str) -> bool:
         verified = password_context.verify(password, hashed_pass)
         if not verified:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect email or password')
@@ -61,7 +61,7 @@ class AuthService:
             user: User = await UserRepository.get_by_email(session=db_session, email=email)
         except NoResultFound:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect email or password')
-        AuthService.__verify_password(password=password, hashed_pass=user.password)
+        AuthService.verify_password(password=password, hashed_pass=user.password)
         access_token = AuthService.__create_token(subject=user.email,
                                                   expire_minutes=int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')))
         refresh_token = AuthService.__create_token(subject=user.email,
@@ -71,7 +71,7 @@ class AuthService:
 
     @classmethod
     async def get_current_user(cls, token: str = Depends(reuseable_oauth),
-                               db_session: AsyncSession = Depends(get_db_session)):
+                               db_session: AsyncSession = Depends(get_db_session)) -> DBUserSchema:
         token_data = cls.__check_token(token=token)
 
         user: User = await UserRepository.get_by_email(session=db_session, email=token_data.sub)
@@ -82,7 +82,7 @@ class AuthService:
                 detail="Could not find user",
             )
 
-        return UserSchema.from_orm(user)
+        return DBUserSchema.from_orm(user)
 
     @classmethod
     def __check_token(cls, token, is_access_token: bool = True) -> TokenPayload:

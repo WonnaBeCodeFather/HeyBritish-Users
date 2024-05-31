@@ -30,11 +30,27 @@ class UserCreateSchema(UserBase):
     password: str
 
 
-class UserUpdateSchema(UserBase):
-    pass
+class UserUpdateSchema(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    phone_number: str | None = None
+    email: EmailStr | None = None
+    status: User.Status | None = None
+
+    class Config:
+        from_attributes = True
 
 
 class UserSchema(UserBase):
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
+
+class DBUserSchema(UserSchema):
+    password: str
+
+
+class ChangePasswordRequestSchema(BaseModel):
+    current_password: str
+    new_password: str
