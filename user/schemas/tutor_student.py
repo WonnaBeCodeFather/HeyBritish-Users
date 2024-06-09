@@ -7,7 +7,7 @@ class TutorStudentCreateSchema(BaseModel):
     student_id: int
     tutor_id: int
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 
