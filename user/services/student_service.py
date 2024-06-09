@@ -12,17 +12,17 @@ class StudentService:
     @classmethod
     async def add(cls, session: AsyncSession, data: StudentCreateSchema) -> StudentSchema:
         try:
-            student: Student = await StudentRepository.add(session=session, data=data.dict())
+            student: Student = await StudentRepository.add(session=session, data=data.model_dump())
         except IntegrityError:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        return StudentSchema.from_orm(student)
+        return StudentSchema.model_validate(student, from_attributes=True)
 
     @classmethod
     async def get(cls, session: AsyncSession, pk: int) -> StudentSchema:
         student: Student = await StudentRepository.get(session=session, pk=pk)
         if not student:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        return StudentSchema.from_orm(student)
+        return StudentSchema.model_validate(student, from_attributes=True)
 
     @classmethod
     async def get_student_tutors(cls, session: AsyncSession, pk) -> list[GetStudentTutorSchema]:

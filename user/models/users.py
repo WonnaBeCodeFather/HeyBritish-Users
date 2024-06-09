@@ -12,9 +12,11 @@ class Base(DeclarativeBase):
 class TimestampModel(Base):
     __abstract__ = True
     id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.utcnow())
-    updated_at: Mapped[datetime.datetime] = mapped_column(onupdate=datetime.datetime.utcnow(),
-                                                          default=datetime.datetime.utcnow())
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        default=datetime.datetime.now(datetime.UTC).replace(tzinfo=None))
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        onupdate=datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
+        default=datetime.datetime.now(datetime.UTC).replace(tzinfo=None))
 
 
 class Tenant(TimestampModel):
@@ -27,9 +29,9 @@ class Tenant(TimestampModel):
 class User(TimestampModel):
     __tablename__ = 'user'
 
-    class Status(enum.Enum):
-        ACTIVE = 'active'
-        INACTIVE = 'inactive'
+    class Status(str, enum.Enum):
+        active = 'active'
+        inactive = 'inactive'
 
     first_name: Mapped[str]
     last_name: Mapped[str]
@@ -38,7 +40,7 @@ class User(TimestampModel):
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
     tutor: Mapped["Tutor"] = relationship("Tutor", back_populates="user")
     student: Mapped["Student"] = relationship("Student", back_populates="user")
-    status: Mapped[Status] = mapped_column(default=Status.ACTIVE)
+    status: Mapped[Status] = mapped_column(default=Status.inactive)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenant.id", name='tenant_constrain'))
     password: Mapped[str]
 

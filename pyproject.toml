@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+pythonpatch = [
+    ".", "user"
+]
+asyncio_mode='strict'

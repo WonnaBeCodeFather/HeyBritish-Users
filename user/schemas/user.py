@@ -1,7 +1,7 @@
 import datetime
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator, field_validator
 
 from user.models.users import User
 
@@ -17,9 +17,14 @@ class UserBase(BaseModel):
     phone_number: str
     email: EmailStr
     tenant_id: int
-    status: User.Status = User.Status.INACTIVE
+    status: User.Status = User.Status.inactive.value
 
-    class Config:
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, email):
+        return email.lower()
+
+    class ConfigDict:
         from_attributes = True
 
 
@@ -37,7 +42,7 @@ class UserUpdateSchema(BaseModel):
     email: EmailStr | None = None
     status: User.Status | None = None
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 

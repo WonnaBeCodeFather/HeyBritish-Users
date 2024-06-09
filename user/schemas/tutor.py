@@ -7,7 +7,7 @@ class TutorCreateSchema(BaseModel):
     rate: float
     cost_per_lesson: float
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 

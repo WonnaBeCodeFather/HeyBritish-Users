@@ -82,7 +82,7 @@ class AuthService:
                 detail="Could not find user",
             )
 
-        return DBUserSchema.from_orm(user)
+        return DBUserSchema.model_validate(user)
 
     @classmethod
     def __check_token(cls, token, is_access_token: bool = True) -> TokenPayload:

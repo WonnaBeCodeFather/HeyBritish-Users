@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class StudentCreateSchema(BaseModel):
     user_id: int
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 

@@ -7,6 +7,7 @@ from user.models.users import User
 class UserRepository:
     @classmethod
     async def add(cls, session: AsyncSession, data: dict) -> User:
+        # adds only those fields that the table contains, all other fields are ignored
         user_data = {key: value for key, value in data.items() if key in User.__table__.columns.keys()}
 
         user = User(**user_data)
